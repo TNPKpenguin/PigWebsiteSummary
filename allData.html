@@ -7,6 +7,7 @@
     <title>Data</title>
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
   </head>
 
   <!-- <body class="light"> -->
@@ -83,6 +84,8 @@
       </table>
     </div>
 
+    <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+
     <script type="module">
 //---------------------Filling table------------------------//
       var pigNo = 0;
@@ -110,12 +113,15 @@
       }
 
       function addAllItemToTable(Status){
-        pigNo=0;
+        var pigNo=0;
         tbody.innerHTML="";
         let n_pig_array = new Array();{
         var paragraph = document.getElementById("date");
         var date_from_p = paragraph.textContent;
-
+        const status_plot = new Array();
+        const x = new Array();
+        var pigNo2 = 0;
+        
         pigNo=0;
 
         Status.forEach(element => {
@@ -132,13 +138,25 @@
           var paragraph2 = document.getElementById("n_pig_box");
           var date = paragraph.textContent;
           var n = paragraph2.value;
-          console.log(n)
+          //console.log("n : " + n);
+
           if(element.Date == date){
             if(element.n == n){
               AddItemToTable(element.Date, element.Time,  element.n, element.Status.substring(element.Status.indexOf(':') + 1, element.Status.length));
-            }
-          }
+
+              if(element.Status.substring(element.Status.indexOf(':') + 1, element.Status.length) == "stand"){
+                status_plot[pigNo2] = 2;
+              }else if(element.Status.substring(element.Status.indexOf(':') + 1, element.Status.length) == "sit"){
+                status_plot[pigNo2] = 1;
+              }else{
+                status_plot[pigNo2] = 0;
+              }
+              x[pigNo2++] = pigNo2;
+              //console.log("status No : " + status_plot[pigNo2]);
+            } 
+          }  
         });
+        line_plot(x, status_plot, "สถิติการลุกนั่ง");
       }
     }
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -159,6 +177,31 @@
       from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
       const db = getDatabase();
 
+//-----------------------line plot----------------------------------//
+      function line_plot(x, y, title) {
+        new Chart("myChart", {
+          type: "line",
+          data: {
+            labels: x,
+            datasets: [{
+              fill: false,
+              lineTension: 0,
+              backgroundColor: "rgba(0,0,255,1.0)",
+              borderColor: "rgba(0,0,255,0.1)",
+              data: y
+            }]
+          },
+          options: {
+            title: {
+              display: true,
+              text: title
+            },
+            legend: {
+            display: false
+          },
+          }
+        });
+      }
 
 //-----------------------Getting all data---------------------------//
       function GetAllDataOnce(){
